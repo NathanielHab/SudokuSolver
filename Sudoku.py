@@ -142,15 +142,15 @@ def removeMaybesRow(n, m, r, i, j, maybes):
 
 def solve(S, maybes):
     lastS = []
-    while ((not isDone(S)) and (not isStuck(S))):
+    while ((not isDone(S))):# and (not isStuck(S))):
         r = 0
         lastS = S.copy()
         while r < 9:
             i = 0
             while i < 9:
-                if S[r][i] != 0:
-                    maybes[r][i] = [S[r][i]]
-                elif S[r][i] == 0:
+                if (S[r][i] == 0 and len(maybes[r][i]) == 1):
+                    S[r][i] = maybes[r][i][0]
+                if S[r][i] == 0:
                     n = 1
                     ans = []
                     while n < 10:
@@ -165,14 +165,18 @@ def solve(S, maybes):
                         #print(str(ans))
                         S[r][i] = ans[0]
                         #print(str(r+1) +" "+ str(i+1) +" "+ str(n-1) +" "+ str(S))
-                    if len(ans) == 2:
-                        j = 0
-                        while j < 9:
-                            if maybes[r][j] == ans and i != j:
-                                maybes = removeMaybesRow(ans[0], ans[1], r, i, j, maybes)
-                            j+=1
+##                    if len(ans) == 2:
+##                        j = 0
+##                        while j < 9:
+##                            if maybes[r][j] == ans and i != j:
+##                                maybes = removeMaybesRow(ans[0], ans[1], r, i, j, maybes)
+##                            j+=1
+                if S[r][i] != 0:
+                    maybes[r][i] = [S[r][i]]
                 i+=1
             r+=1
+        if isStuck(S):
+            break
     if isImpossible(S, maybes):
         print("impossible")
         return []  #indicates S is impossible
@@ -183,17 +187,45 @@ def solve(S, maybes):
             i = 0
             while i < 9:
                 if len(maybes[r][i]) == 2: #find first square in S that has only 2 possible inputs
+                    print("found potential square (2)")
                     mG1 = maybes.copy()
                     mG1[r][i] = [mG1[r][i][0]]
                     sG1 = solve(S, mG1)  #guess one
                     if len(sG1) != 0:
-                        return sG1
+                        return solve(sG1, mG1)
                     mG2 = maybes.copy()
                     mG2[r][i] = [mG2[r][i][1]]
                     sG2 = solve(S, mG2)  #guess two
-                    return sG2  #don't need to check if impossible since if we are here then sG1 is impossible
-                        
-                
+                    if len(sG2) != 0:
+                        return solve(sG2, mG2)
+                i+=1
+            while i < 9:
+                if len(maybes[r][i]) == 3: #find first square in S that has only 3 possible inputs (if none with 2)
+                    print("found potential square (3)")
+                    mG1 = maybes.copy()
+                    mG1[r][i] = [mG1[r][i][0]]
+                    sG1 = solve(S, mG1)  #guess one
+                    if len(sG1) != 0:
+                        return solve(sG1, mG1)
+                    mG2 = maybes.copy()
+                    mG2[r][i] = [mG2[r][i][1]]
+                    sG2 = solve(S, mG2)  #guess two
+                    if len(sG2) != 0:
+                        return solve(sG2, mG2)
+                    mG3 = maybes.copy()
+                    mG3[r][i] = [mG3[r][i][2]]
+                    sG3 = solve(S, mG3)  #guess three
+                    if len(sG3) != 0:
+                        return solve(sG3, mG3)
+                i+=1
+            r+=1
+        #print(maybes)
+        formatPrint(S)
+        #solve(S, maybes)
+    if (not isDone(S)):
+        print("not done")
+        solve(S, maybes)
+    print("end")
     return S
     #formatPrint(S)
 
@@ -203,13 +235,18 @@ def solve(S, maybes):
 S = [[8,1,7,0,0,0,0,4,5],[0,0,0,0,5,1,7,0,6],[2,6,5,0,0,3,0,0,1],[4,7,0,5,6,8,0,0,0],[9,5,1,0,0,0,0,8,0],[0,3,0,0,9,0,2,0,0],[0,4,0,2,0,0,0,0,0],[0,0,0,0,0,5,0,7,9],[5,8,9,7,3,0,1,6,0]]
 
 #hard one (does not work yet)
-#S = [[5,0,0,0,0,1,0,4,0],[8,0,0,7,4,0,5,0,0],[1,0,0,3,8,0,9,0,0],[0,0,2,0,0,4,0,0,0],[6,0,0,0,3,0,0,0,1],[0,0,0,6,0,0,4,0,0],[0,0,8,0,7,9,0,0,4],[0,0,7,0,2,3,0,0,6],[0,3,0,4,0,0,0,0,2]]
+S = [[5,0,0,0,0,1,0,4,0],[8,0,0,7,4,0,5,0,0],[1,0,0,3,8,0,9,0,0],[0,0,2,0,0,4,0,0,0],[6,0,0,0,3,0,0,0,1],[0,0,0,6,0,0,4,0,0],[0,0,8,0,7,9,0,0,4],[0,0,7,0,2,3,0,0,6],[0,3,0,4,0,0,0,0,2]]
+
+#hardest one
+#S = [[8,0,0,0,0,0,0,0,0],[0,0,3,6,0,0,0,0,0],[0,7,0,0,9,0,2,0,0],[0,5,0,0,0,7,0,0,0],[0,0,0,0,4,5,7,0,0],[0,0,0,1,0,0,0,3,0],[0,0,1,0,0,0,0,6,8],[0,0,8,5,0,0,0,1,0],[0,9,0,0,0,0,4,0,0]]
 
 #initialise list of possible numbers in each square
 maybes = [[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]],[[],[],[],[],[],[],[],[],[]]]
 #maybes = [[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]],[[0],[0],[0],[0],[0],[0],[0],[0],[0]]]
 #print(maybes)
 #Run the code
+
+formatPrint(S)
 ans = solve(S, maybes)
 formatPrint(ans)
 
